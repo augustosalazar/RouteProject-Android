@@ -102,7 +102,7 @@ public class MainFragment extends Fragment implements LocationListener{
 
 			@Override
 			public void onClick(View v) {
-
+				Log.d(TAG, "uploadButton click");
 				uploadData();
 			}
 		});
@@ -119,6 +119,25 @@ public class MainFragment extends Fragment implements LocationListener{
 
 		if (mString == null)
 			mString = new StringBuilder();
+	}
+	
+	/* Checks if external storage is available for read and write */
+	public boolean isExternalStorageWritable() {
+	    String state = Environment.getExternalStorageState();
+	    if (Environment.MEDIA_MOUNTED.equals(state)) {
+	        return true;
+	    }
+	    return false;
+	}
+	
+	/* Checks if external storage is available to at least read */
+	public boolean isExternalStorageReadable() {
+	    String state = Environment.getExternalStorageState();
+	    if (Environment.MEDIA_MOUNTED.equals(state) ||
+	        Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+	        return true;
+	    }
+	    return false;
 	}
 
 	public void starCapturing() {
@@ -161,9 +180,16 @@ public class MainFragment extends Fragment implements LocationListener{
 
 		} else {
 
+			if (isExternalStorageWritable() == false){
+				Log.d(TAG, "Ext not writable ");
+				Toast.makeText(getActivity(), "Ext not writable", Toast.LENGTH_LONG)
+				.show();
+			}
+			File directory = new File(APP_FOLDER_PATH);
+			directory.mkdirs();
 			String fileName = APP_FOLDER_PATH + "DATA.csv";
 			mFile = new File(fileName);
-
+			
 			if (!mFile.exists()) {
 				try {
 					mFile.createNewFile();
@@ -172,6 +198,8 @@ public class MainFragment extends Fragment implements LocationListener{
 					Log.d(TAG, "New SENSORS file created succesfully!");
 				} catch (IOException e) {
 					Log.d(TAG, "Error at creating " + fileName);
+					Toast.makeText(getActivity(), "Error creando archivo", Toast.LENGTH_LONG)
+					.show();
 					e.printStackTrace();
 				}
 			} else {
@@ -280,13 +308,8 @@ public class MainFragment extends Fragment implements LocationListener{
 	
 
 	public void uploadData() {
-		final String serverUrl = "http://augustodesarrollador.com/ruta/";
-
-		SharedPreferences sharedPreferences = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
-		final boolean checkBoxValue = sharedPreferences.getBoolean(
-				"PREF_CHECKBOX_DEBUG", false);
-		Log.d(TAG, "Debug Mode" + String.valueOf(checkBoxValue));
+		//final String serverUrl = "http://augustodesarrollador.com/ruta/";
+		final String serverUrl = "http://192.168.0.12:8888/RouteProject-Web/";
 
 		new Thread(new Runnable() {
 			@Override
@@ -294,12 +317,12 @@ public class MainFragment extends Fragment implements LocationListener{
 				getActivity().runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-
+						Log.d(TAG, "Upload starting");
 					}
 				});
 
-				uploadFile(serverUrl + "UploadToServer.php", APP_FOLDER_PATH
-						+ "DATA.csv", checkBoxValue);
+				uploadFile(serverUrl + "upload.php", APP_FOLDER_PATH
+						+ "DATA.csv", true);
 			}
 		}).start();
 	}
@@ -319,15 +342,19 @@ public class MainFragment extends Fragment implements LocationListener{
 		byte[] buffer;
 		int maxBufferSize = 1 * 1024 * 1024;
 		File sourceFile = new File(sourceFileUri);
+		
+		Log.d(TAG, "Upload File" + sourceFileUri);
 
 		if (!sourceFile.isFile()) {
 
-			Log.e("uploadFile", "Source File not exist :" + sourceFileUri);
+			Log.e(TAG, "Source File not exist :" + sourceFileUri);
 			
 			return 0;
 
 		} else {
 			try {
+				
+				Log.d(TAG, "Upload File found :" + sourceFileUri);
 
 				// open a URL connection to the Servlet
 				FileInputStream fileInputStream = new FileInputStream(
@@ -380,7 +407,7 @@ public class MainFragment extends Fragment implements LocationListener{
 				serverResponseCode = conn.getResponseCode();
 				String serverResponseMessage = conn.getResponseMessage();
 
-				Log.i("uploadFile", "HTTP Response is : "
+				Log.i(TAG, "HTTP Response is : "
 						+ serverResponseMessage + ": " + serverResponseCode);
 
 				if (serverResponseCode == 200) {
@@ -409,12 +436,12 @@ public class MainFragment extends Fragment implements LocationListener{
 
 				ex.printStackTrace();
 
-				Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
+				Log.e(TAG, "error: " + ex.getMessage(), ex);
 			} catch (Exception e) {
 
 				e.printStackTrace();
 
-				Log.e("Upload file to server Exception",
+				Log.e(TAG,
 						"Exception : " + e.getMessage(), e);
 			}
 			return serverResponseCode;
