@@ -1,9 +1,11 @@
-package com.example.gpstestapp;
+package com.uninorte.route;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import com.example.gpstestapp.R;
 
 import android.app.AlertDialog;
 import android.content.Context;

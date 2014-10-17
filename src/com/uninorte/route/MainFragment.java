@@ -1,4 +1,4 @@
-package com.example.gpstestapp;
+package com.uninorte.route;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import com.example.gpstestapp.R;
 
 
 import android.app.AlertDialog;
@@ -29,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +44,7 @@ public class MainFragment extends Fragment implements LocationListener{
 	protected TextView textViewLongitude;
 	protected TextView textViewSpeed;
 	protected TextView textViewLatitude;
+	protected EditText editTextPredio;
 	protected boolean mStarted;
 	private LocationManager mLocationManager;
 	private MainFragment listener = this;
@@ -80,13 +84,19 @@ public class MainFragment extends Fragment implements LocationListener{
 				.findViewById(R.id.textViewLongitude);
 		textViewLatitude = (TextView) rootView
 				.findViewById(R.id.textViewLatitude);
+		editTextPredio = (EditText) rootView
+				.findViewById(R.id.editPredio);
 
 		mButtonGps.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				if (mStarted == false) {
-					starCapturing();
+					if (isEmpty(editTextPredio)){
+						Toast.makeText(mContext, "Agregar predio!", Toast.LENGTH_SHORT).show();
+					} else {
+						starCapturing();
+					}
 				} else {
 					Toast.makeText(getActivity(), "Stoped",
 							Toast.LENGTH_LONG).show();
@@ -102,8 +112,10 @@ public class MainFragment extends Fragment implements LocationListener{
 
 			@Override
 			public void onClick(View v) {
-				Log.d(TAG, "uploadButton click");
+				if (fileExist(APP_FOLDER_PATH + "DATA.csv")){
 				uploadData();
+				} else {
+				}
 			}
 		});
 
@@ -120,6 +132,10 @@ public class MainFragment extends Fragment implements LocationListener{
 		if (mString == null)
 			mString = new StringBuilder();
 	}
+	
+	  private boolean isEmpty(EditText etText) {
+	        return etText.getText().toString().trim().length() == 0;
+	    }
 	
 	/* Checks if external storage is available for read and write */
 	public boolean isExternalStorageWritable() {
@@ -138,6 +154,16 @@ public class MainFragment extends Fragment implements LocationListener{
 	        return true;
 	    }
 	    return false;
+	}
+	
+	public boolean fileExist(String pacth){
+		File file = new File(pacth);
+		if (file.exists()){
+			return true;
+		} else {
+			return false;
+		}
+		
 	}
 
 	public void starCapturing() {
@@ -249,7 +275,7 @@ public class MainFragment extends Fragment implements LocationListener{
 
 		mString.setLength(0);
 		mString.append(String.valueOf(System.currentTimeMillis()));
-		mString.append("," + "Predio");
+		mString.append("," + editTextPredio.getText().toString());
 		mString.append("," + String.valueOf(mLat));
 		mString.append("," + String.valueOf(mLong));
 		mString.append("," + String.valueOf(mAlt));
@@ -308,8 +334,8 @@ public class MainFragment extends Fragment implements LocationListener{
 	
 
 	public void uploadData() {
-		//final String serverUrl = "http://augustodesarrollador.com/ruta/";
-		final String serverUrl = "http://192.168.0.12:8888/RouteProject-Web/";
+		final String serverUrl = "http://augustodesarrollador.com/ruta/";
+		//final String serverUrl = "http://192.168.0.12:8888/RouteProject-Web/";
 
 		new Thread(new Runnable() {
 			@Override
