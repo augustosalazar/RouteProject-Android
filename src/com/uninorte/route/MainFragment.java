@@ -431,7 +431,7 @@ public class MainFragment extends Fragment implements LocationListener{
 
 				// Responses from the server (code and message)
 				serverResponseCode = conn.getResponseCode();
-				String serverResponseMessage = conn.getResponseMessage();
+				final String serverResponseMessage = conn.getResponseMessage();
 
 				Log.i(TAG, "HTTP Response is : "
 						+ serverResponseMessage + ": " + serverResponseCode);
@@ -443,6 +443,20 @@ public class MainFragment extends Fragment implements LocationListener{
 						public void run() {
 							Toast.makeText(mContext,
 									"File Upload Complete.", Toast.LENGTH_SHORT)
+									.show();
+
+							if (debugMode == false) {
+								File file = new File(sourceFileUri);
+								file.delete();
+							}
+						}
+					});
+				} else {
+					getActivity().runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Toast.makeText(mContext,
+									"HTTP Response problem  "+serverResponseMessage+ " "+serverResponseCode, Toast.LENGTH_SHORT)
 									.show();
 
 							if (debugMode == false) {
